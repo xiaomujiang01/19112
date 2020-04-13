@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.st.dao.ICustomerDao">
+	<!-- 查出客户列表并分页 -->
+	<select id="customer_list" parameterType="map" resultType="map">
+		select * from customer where (state=#{state} and customer_name like
+		'%${text}%')
+		or (state=#{state} and customer_man like '%${text}%')
+		order by create_time desc limit ${start},${limit}
+	</select>
+
+	<!-- 查出客户列表中客户的数量 -->
+	<select id="customer_list_total" parameterType="map"
+		resultType="int">
+		select count(*) from customer where state=#{state} and
+		customer_name like
+		'%${text}%'
+	</select>
+
+	<!-- 向客户表中新增客户 -->
+	<insert id="customer_add" parameterType="map">
+		insert into customer
+		(customer_id,
+		customer_name,
+		customer_man,
+		customer_email,
+		customer_tel,
+		customer_addr,
+		state,
+		customer_public,
+		customer_grade,
+		create_time,
+		customer_user) values (#{uuid},
+		#{customer_name},
+		#{customer_man},
+		#{customer_email},
+		#{customer_tel},
+		#{customer_addr},
+		#{state},
+		#{customer_public},
+		#{customer_grade},
+		now(),
+		#{customer_user})
+	</insert>
+
+	<!-- 根据customer_id删除一个或多个用户 -->
+	<update id="customer_del" parameterType="map">
+		update customer set
+		state=#{state} where customer_id in (${customer_ids})
+	</update>
+
+	<!-- 根据customer_id删除客户 -->
+	<update id="customer_del_row" parameterType="map">
+		update customer set
+		state=#{state} where customer_id=#{customer_id}
+	</update>
+
+	<!-- 修改客户信息 -->
+	<update id="customer_upd" parameterType="map">
+		update customer set
+		customer_name=#{customer_name},customer_man=#{customer_man},
+		customer_tel=#{customer_tel},customer_addr=#{customer_addr} where
+		customer_id=#{customer_id}
+	</update>
+
+	<!-- 根据客户名或联系人查找公海客户 -->
+	<select id="public_customer_list" parameterType="map"
+		resultType="map">
+		select * from customer where (state=#{state} and
+		customer_public=#{public}
+		and customer_name like '%${text}%') or
+		(state=#{state} and customer_public=#{public}
+		and customer_man like
+		'%${text}%') order by create_time desc limit
+		${start},${limit}
+	</select>
+
+	<!-- 公海客户数量 -->
+	<select id="public_customer_list_total" parameterType="map"
+		resultType="int">
+		select count(*) from customer where state=#{state} and
+		customer_public=#{public} and customer_name like '%${text}%'
+	</select>
+
+	<!-- 向客户表中新增公海客户 -->
+	<insert id="public_customer_add" parameterType="map">
+		insert into
+		customer
+		(customer_id,
+		customer_name,
+		customer_man,
+		customer_email,
+		customer_tel,
+		customer_addr,
+		state,
+		customer_public,
+		customer_grade,
+		create_time,
+		customer_user) values (#{uuid},
+		#{customer_name},
+		#{customer_man},
+		#{customer_email},
+		#{customer_tel},
+		#{customer_addr},
+		#{state},
+		#{public},
+		#{customer_grade},
+		now(),
+		#{customer_user})
+	</insert>
+
+	<!-- 行内跟单公海客户 -->
+	<update id="public_customer_private_row" parameterType="map">
+		update
+		customer set customer_public=#{public},customer_user=#{userid} where
+		customer_id=#{customer_id}
+	</update>
+
+	<!-- 跟单一个或多个公海客户 -->
+	<update id="public_customer_private" parameterType="map">
+		update
+		customer set customer_public=#{public},customer_user=#{userid} where
+		customer_id in (${customer_ids})
+	</update>
+
+	<!-- 放弃跟单客户 -->
+	<update id="public_customer" parameterType="map">
+		update
+		customer set
+		customer_public=#{public},customer_user=#{userid} where
+		customer_id in
+		(${customer_ids})
+	</update>
+	<!-- 修改公海客户信息 -->
+	<update id="public_customer_upd" parameterType="map">
+		update customer
+		set
+		customer_name=#{customer_name},customer_man=#{customer_man},
+		customer_tel=#{customer_tel},customer_addr=#{customer_addr} where
+		customer_id=#{customer_id}
+	</update>
+
+	<!-- 查找跟单客户 -->
+	<select id="private_customer_list" parameterType="map"
+		resultType="map">
+		select * from customer where state=#{state} and
+		customer_public=#{public} and
+		customer_user=#{userid} and (customer_name like '%${text}%' or customer_man like '%${text}%')
+		order by create_time desc limit ${start},${limit}
+	</select>
+
+	<!-- 跟单客户数量 -->
+	<select id="private_customer_list_total" parameterType="map"
+		resultType="int">
+		select count(*) from customer where state=#{state} and
+		customer_public=#{public} and
+		customer_user=#{userid} and customer_name like '%${text}%'
+	</select>
+	<!-- 查找跟单客户 -->
+	<select id="private_all_customer_list" parameterType="map"
+		resultType="map">
+		select * from customer where state=#{state} and
+		customer_public=#{public} and
+		customer_user=#{userid} 
+	</select>
+
+	<!-- 获取回访方式信息 -->
+	<select id="visit_partten_list" resultType="map">
+		select * from partten
+	</select>
+
+	<insert id="visit_customer" parameterType="map">
+		insert into visit (visit_id,
+		visit_customer_id,
+		visit_user_id,
+		visit_time,
+		visit_info,
+		visit_pattern,
+		visit_pay,
+		visit_money) values 
+		<foreach collection="customer_list" item="customer_uuid" separator=",">
+		(
+		#{customer_uuid.uuid},
+		#{customer_uuid.customer_id},
+		#{login_userid},
+		now(),
+		#{visit_info},
+		#{visit_partten},
+		#{visit_pay},
+		#{visit_money}
+		)
+		</foreach>
+	</insert>
+	<!-- SQL语句有问题 -->
+	<select id='no_visit_list' resultType="map" parameterType="map">
+		select * from customer a left join visit b on a.customer_id=b.visit_customer_id
+	where curdate()>=DATE_ADD(b.visit_time,INTERVAL 2 DAY)
+	</select>
+	<insert id="init_tip" parameterType="map">
+	insert into tip (tip_id,tip_time,tip_info,tip_user_id,tip_state)
+	values
+	<foreach collection="tip_infos" item="tip_info" separator=",">
+	(#{tip_info.uuid},now(),#{tip_info.tip_info},#{tip_info.customer_user},#{tip_info.state})
+	</foreach>
+	</insert>
+	<resultMap type="com.st.bean.Visit" id="visit_bean">
+		<association property="visit_customer_bean" select="customer_bean" column="visit_customer_id"></association>
+		<association property="visit_user_bean" select="user_bean" column="visit_user_id"></association>
+		<association property="visit_partten_bean" select="partten_bean" column="visit_pattern"></association>
+	</resultMap>
+	<select id="customer_bean" resultType="com.st.bean.Customer">
+	select * from customer where customer_id=#{customer_id}
+	</select>
+		<select id="user_bean" resultType="com.st.bean.User">
+	select * from user where userid=#{userid}
+	</select>
+		<select id="partten_bean" resultType="com.st.bean.Partten">
+	select * from partten where partten_id=#{partten_id}
+	</select>
+	<select id="visit_infos" parameterType="map" resultMap="visit_bean">
+	select * from visit a  where visit_customer_id=#{customer_id} limit ${start},${limit}
+	</select>
+	<select id="visit_infos_total" parameterType="map" resultType="int">
+	select count(*) from visit where visit_customer_id=#{customer_id}
+	</select>
+</mapper>

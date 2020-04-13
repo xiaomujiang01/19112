@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.st.dao.IRoleDao">
+	<!-- 查出角色列表并分页 -->
+	<select id="role_list" parameterType="map" resultType="map">
+		select *
+		from role where (state=#{state} and role_id like
+		'%${text}%') or (state=#{state} and role_name like
+		'%${text}%') or (state=#{state} and role_code like '%${text}%')
+		order by role_id limit
+		${start},${limit}
+	</select>
+
+	<!-- 查出角色列表中角色的数量 -->
+	<select id="role_list_total" parameterType="map"
+		resultType="int">
+		select count(*) from role where state=#{state}
+	</select>
+
+	<!-- 向角色表中新增角色 -->
+	<insert id="role_add" parameterType="map">
+		insert into role
+		(role_id,role_name,role_code,state) values
+		(#{uuid},#{role_name},#{role_code},#{state})
+	</insert>
+
+	<!-- 根据role_id删除一个或多个角色 -->
+	<update id="role_del" parameterType="map">
+		update role set state=#{state} where
+		role_id in (${role_ids})
+	</update>
+
+	<!-- 根据role_id删除角色 -->
+	<update id="role_del_row" parameterType="map">
+		update role set state=#{state} where
+		role_id=#{role_id}
+	</update>
+
+	<!-- 修改角色信息 -->
+	<update id="role_upd" parameterType="map">
+		update role set
+		role_name=#{role_name},role_code=#{role_code} where
+		role_id=#{role_id}
+	</update>
+	
+		<!-- 查出角色列表中角色的数量 -->
+	<select id="role_permission_list" resultMap="role_perm_map">
+		select a.*,b.role_id from permission a left join role_permission b on a.perm_id=b.perm_id where a.parent_id=#{parent_id}
+	</select>
+	<resultMap type="com.st.bean.TreeBean" id="role_perm_map">
+	<result column="perm_id" property="id"/>
+	<result column="perm_name" property="title"/>
+	<result column="role_id" property="role_id"/>
+	<collection property="children" select="role_permission_list" column="perm_id"></collection>
+	</resultMap>
+	
+	<delete id="del_role_perm" parameterType="map">
+	delete from role_permission where role_id=#{role_id}
+	</delete>
+		<!-- 向角色表中新增角色 -->
+	<insert id="save_role_perm" parameterType="map">
+	
+		insert into role_permission(role_id,perm_id) values
+		<foreach collection="perm_arr" item="perm_id" separator=",">
+		(#{role_id},#{perm_id})
+		</foreach>
+		
+	</insert>
+
+</mapper>

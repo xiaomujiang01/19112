@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.st.dao.IPermissionDao">
+
+<resultMap type="com.st.bean.TreeBean" id="treebean">
+<result column="parent_id" property="id"/>
+<result column="parent_name" property="title"/>
+<collection property="children" ofType="com.st.bean.TreeBean">
+<result column="perm_id" property="id"/>
+<result column="perm_name" property="title"/>
+</collection>
+</resultMap>
+
+<select id="treeJson" resultMap="treebean">
+select a.perm_id as parent_id,a.perm_name as parent_name,b.perm_id,b.perm_name from permission a left join permission b 
+on a.perm_id=b.parent_id where a.parent_id is null
+</select>
+
+</mapper>

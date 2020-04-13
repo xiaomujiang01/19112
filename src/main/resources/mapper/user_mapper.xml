@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.st.dao.IUserDao">
+<!-- 查出用户列表并分页 -->
+<select id="user_list" parameterType="map" resultType="map">
+select * from user where (state=#{state} and  username like '%${text}%') or 
+(state=#{state} and  userid like '%${text}%') or (state=#{state} and  sex like '%${text}%') 
+ order by create_time desc limit ${start},${limit} 
+</select>
+
+<!-- 查出用户列表中用户的数量 -->
+<select id="user_list_total" parameterType="map" resultType="int">
+select count(*) from user where state=#{state} and username like '%${text}%'
+</select>
+
+<!-- 向用户表中新增用户 -->
+<insert id="user_add" parameterType="map">
+insert into user (userid,username,sex,userpass,tel,birthday,state,create_time,
+last_login_time) values (#{uuid},#{username},#{sex},#{userpass},#{tel},#{birthday},#{state},now(),now())
+</insert>
+
+<!-- 根据userid删除一个或多个用户 -->
+<update id="user_del" parameterType="map">
+update user set state=#{state} where userid in (${userids})
+</update>
+
+<!-- 根据userid删除一个用户 -->
+<update id="user_del_row" parameterType="map">
+update user set state=#{state} where userid = #{userid}
+</update>
+
+<!-- 更新用户信息 -->
+<update id="user_upd" parameterType="map">
+update user set username=#{username},sex=#{sex},tel=#{tel} where userid=#{userid}
+</update>
+
+
+<select id="getuser" parameterType="string" resultMap="user_map">
+select * from user where username = #{username}
+</select>
+
+<resultMap id="user_map" type="com.st.bean.User" >
+<result column="userid" property="userid"></result>
+<result column="username" property="username"></result>
+<result column="userpass" property="userpass"></result>
+<collection property="roles" select="user_role_list" column="userid"></collection>
+</resultMap>
+
+<select id="user_role_list" resultMap="role_map">
+select b.* from user_role a left join role b on a.role_id=b.role_id where a.userid=#{userid}
+</select>
+
+<resultMap id="role_map" type="com.st.bean.Role" >
+<result column="role_id" property="role_id"></result>
+<result column="role_name" property="role_name"></result>
+<collection property="permissions" select="role_permission_list" column="role_id"></collection>
+</resultMap>
+
+<select id="role_permission_list" resultType="com.st.bean.Permission">
+select b.* from role_permission a left join permission b on a.perm_id = b.perm_id where 
+a.role_id =#{role_id}
+</select>
+
+
+<!-- 
+<select id="user_role_list" parameterType="map" resultType="map">
+select * from user_role
+</select> -->
+
+</mapper>
