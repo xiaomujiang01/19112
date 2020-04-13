@@ -15,7 +15,9 @@ import com.st.util.TableJSON;
 @Controller
 @RequestMapping("/sys")
 public class BumenAction {
-
+	/**
+	 * 部门Service
+	 */
 	@Autowired
 	IBumenService bumenS;
 
@@ -57,5 +59,4 @@ public class BumenAction {
 		bumenS.bumen_upd(params);
 	}
 
-	
 }
